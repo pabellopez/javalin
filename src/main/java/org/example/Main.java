@@ -67,7 +67,7 @@ public class Main {
             }
         });
 
-        app.get("/login", context -> {
+        app.get("/login", context -> { 
             context.render("login.html");
         });
         app.post("/login/iniciar", context -> {
