@@ -6,10 +6,15 @@ import io.javalin.http.HttpStatus;
 import io.javalin.http.UnauthorizedResponse;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.rendering.template.JavalinThymeleaf;
+import org.eclipse.jetty.server.session.DefaultSessionCache;
+import org.eclipse.jetty.server.session.FileSessionDataStore;
+import org.eclipse.jetty.server.session.SessionCache;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.h2.tools.Server;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,7 +27,6 @@ public class Main {
         config.router.contextPath = "/my-app";
         config.staticFiles.add("static/", Location.CLASSPATH);
 
-
         //AQUI APLICAMOS LA CONFIGURACION PARA QUE JAVALIN ENTIENDA QUE SU MANEJADOR DE PLATILLA SERA THYMELEAF Y QUE SU RUTA ES EN resources/templates Y QUE SUS ARCHIVOS .html
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("templates/"); // Carpeta donde se encuentran las plantillas
@@ -32,8 +36,6 @@ public class Main {
         TemplateEngine templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(templateResolver);
         config.fileRenderer(new JavalinThymeleaf(templateEngine));
-
-
     }
 
 
@@ -44,7 +46,6 @@ public class Main {
         H2JDBCUtils.init();
         Javalin app = Javalin.create(config -> {
                     aplicarConfiguracion(config);
-
                 }).get("/", ctx -> {
                     Map<String, Object> model = new HashMap<>();
                     model.put("titulo", "Javalin app");
@@ -54,16 +55,17 @@ public class Main {
                 .start(7071);
 
 
-//        app.before(context -> {
-//            System.out.println(context.fullUrl());
-//            if (context.sessionAttribute("usuario") == null && !context.fullUrl().contains("login") && !context.fullUrl().contains("assets")) {
-//                context.redirect("./login");
-//            }else {
-//                if (context.fullUrl().contains("login")){
-//                    context.redirect("./home");
-//                }
-//            }
-//        });
+
+        app.before( context -> {
+           if (context.req().getSession().getAttribute("usuario") == null && !context.fullUrl().contains("login") && !context.fullUrl().contains("assets")) {
+                context.redirect("login");
+            }
+            else {
+               if (context.req().getSession().getAttribute("usuario") != null && context.fullUrl().contains("login")) {
+                   context.redirect("home");
+               }
+            }
+        });
 
         app.get("/login", context -> {
             context.render("login.html");
@@ -86,7 +88,7 @@ public class Main {
 
             }
             if (usuario != null) {
-                context.sessionAttribute("usuario", usuario);
+                context.req().getSession().setAttribute("usuario", usuario);
                 context.result("true");
             } else {
                 context.result("false");
