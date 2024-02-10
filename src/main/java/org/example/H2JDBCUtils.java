@@ -66,28 +66,23 @@ public class H2JDBCUtils {
 
     static void insertRecord() throws SQLException {
 
-        String INSERT_USERS_SQL = "INSERT INTO usuario" +
-                "  (id, username, nombre, password, administrator,autor) VALUES " +
-                " (?, ?, ?, ?, ?,?);";
-        // Step 1: Establishing a Connection
+        String sql = "INSERT INTO usuario" +
+                "  (username, nombre, password, administrator,autor) VALUES " +
+                " (?, ?, ?, ?, ?);";
         try {
 
-            PreparedStatement preparedStatement = connection.prepareStatement(INSERT_USERS_SQL);
-            preparedStatement.setInt(1, 1);
-            preparedStatement.setString(2, "admin");
-            preparedStatement.setString(3, "ADMINISTRADOR");
-            preparedStatement.setString(4, "admin");
-            preparedStatement.setBoolean(5, true);
-            preparedStatement.setBoolean(6, false);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "admin");
+            preparedStatement.setString(2, "ADMINISTRADOR");
+            preparedStatement.setString(3, "admin");
+            preparedStatement.setBoolean(4, true);
+            preparedStatement.setBoolean(5, false);
 
-            // Step 3: Execute the query or update query
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            // print SQL exception information
             e.printStackTrace();
         }
 
-        // Step 4: try-with-resource statement will auto close the connection.
     }
 
 
